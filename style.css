@@ -28,7 +28,7 @@ body {
     height: 100vh;
 
     background: no-repeat left;
-    background-size: cover; /* Add this to make image cover container */
+    background-size: cover; 
     background-position: top;
     z-index: 1;
     background-image:
@@ -49,12 +49,12 @@ body {
 }
 .main h1{
     font-size: 6vw;
-    color: rgb(213, 129, 87);
+    color: rgb(228, 195, 72);
     font-family: "Bebas Neue", sans-serif;
 }
 .main h2{
     font-size: 4vw;
-    color: rgb(213, 129, 87);
+    color: rgb(228, 195, 72);
     font-family: "Bebas Neue", sans-serif;
 }
 .main p{
@@ -105,7 +105,9 @@ footer{
 
 #results,
 #method {
-    background: var(--secondary-bg);
+    background: var(--secondary-bg);.heading{
+        line-height: 5vw;
+    }
     border-radius: 16px;
     padding: 25px;
     margin: 25px 0;
@@ -113,7 +115,6 @@ footer{
     box-shadow: 0 12px 40px rgba(0,0,0,0.25);
 }
 
-/* Add this new rule to ensure visibility */
 #results.show, #method.show {
     opacity: 1 !important;
 }
@@ -164,4 +165,25 @@ a {
 a:hover {
     color: #095a83;
     text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+
+    .heading{
+        line-height: 8vw;
+    }
+
+    .main h1 {
+        font-size: 3rem;
+    }
+
+    .main h2 {
+        font-size: 2rem;
+    }
+
+    .main p {
+        font-size: 1rem;
+        margin: 1.5rem 0;
+    }
+
 }
