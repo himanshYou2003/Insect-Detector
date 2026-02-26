@@ -107,7 +107,7 @@ def universal_torch_load(f, map_location=None, pickle_module=pickle, **kwargs):
 
 torch.load = universal_torch_load
 
-# --- PREDICTION LOGIC ---
+# --- FLASK APP ---
 
 app = Flask(__name__)
 CORS(app)
@@ -117,14 +117,16 @@ learn = None
 
 def load_model():
     global learn, LOAD_ERROR
-    # Prioritize the newer model
+    if learn is not None: return True
+    
     MODEL_PATHS = ['deployments/models/model6-90%.pkl', 'deployments/models/model3-86_.pkl']
     
     for path in MODEL_PATHS:
         if not os.path.exists(path): continue
         try:
             print(f"Attempting universal load of: {path}")
-            # Import fastai here to ensure base environment is ready
+            # Import fastai lazily to speed up initial server bind
+            import torch
             from fastai.vision.all import load_learner
             
             # Using torch.load directly with our overloaded version
@@ -142,9 +144,6 @@ def load_model():
             LOAD_ERROR = msg
     return False
 
-# Attempt load on start
-load_model()
-
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -157,6 +156,15 @@ def style():
 def icon():
     return send_from_directory('.', 'insect.png')
 
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status": "ready" if learn else "loading",
+        "model_loaded": learn is not None,
+        "error": LOAD_ERROR,
+        "python_version": sys.version
+    })
+
 @app.route('/predict', methods=['GET', 'POST', 'OPTIONS'])
 def predict():
     if request.method == 'OPTIONS':
@@ -164,9 +172,11 @@ def predict():
     if request.method == 'GET':
         return jsonify({"error": "This endpoint requires a POST request with image data.", "suggestion": "If you are seeing this in your browser, it means the frontend is incorrectly trying to 'GET' the results instead of 'POSTing' the image."}), 405
     
-    # Log the incoming request for debugging
-    print(f"Incoming {request.method} request to /predict")
-    
+    # Lazy load the model on first request
+    if learn is None:
+        print("Lazy loading model on first request...")
+        load_model()
+        
     if learn is None:
         return jsonify({"error": "Model not loaded.", "details": LOAD_ERROR}), 500
     try:
