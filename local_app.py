@@ -204,14 +204,6 @@ def predict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({
-        "status": "ready" if learn else "error",
-        "model_loaded": learn is not None,
-        "error": LOAD_ERROR,
-        "python_version": sys.version
-    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
