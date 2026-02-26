@@ -204,5 +204,6 @@ def health():
     })
 
 if __name__ == '__main__':
-    print(f"Starting 'Universal Bridge' Backend (Python {sys.version.split()[0]})")
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting 'Universal Bridge' Backend on port {port} (Python {sys.version.split()[0]})")
+    app.run(host='0.0.0.0', port=port)
