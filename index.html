@@ -48,28 +48,40 @@
 
         try {
             // Try local backend first, fallback to remote if needed (though remote is currently down)
-            // Use absolute URL to ensure it hits the Flask backend on port 5000
-            const LOCAL_API = "http://localhost:5000/predict";
+            // Use relative path for Render/Production. Fallback to localhost for development.
+            const LOCAL_API = "/predict";
+            const DEV_API = "http://localhost:5000/predict";
             const REMOTE_API = "https://rimi98-insectrecognizer.hf.space/run/predict";
             
             let response;
             try {
+                // Try the primary local/relative endpoint
                 response = await fetch(LOCAL_API, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        data: [reader.result]
-                    })
+                    body: JSON.stringify({ data: [reader.result] })
                 });
+
+                // If relative path fails (e.g. on different port), try explicit localhost
+                if (!response.ok && window.location.port !== "5000") {
+                   throw new Error("Relative path failed, trying dev backup");
+                }
             } catch (e) {
-                console.log("Local API not reached, trying remote...");
-                response = await fetch(REMOTE_API, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        data: [reader.result]
-                    })
-                });
+                try {
+                    console.log("Relative API failed, trying explicit localhost...");
+                    response = await fetch(DEV_API, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ data: [reader.result] })
+                    });
+                } catch (e2) {
+                    console.log("All local/dev attempts failed, trying remote...", e2);
+                    response = await fetch(REMOTE_API, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ data: [reader.result] })
+                    });
+                }
             }
 
             if (!response.ok) {
